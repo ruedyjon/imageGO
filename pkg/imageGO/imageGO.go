@@ -7,8 +7,8 @@ import (
 	"imageGO/internal/netops"
 	"imageGO/structs"
 	"net/http"
-	"os"
 	"slices"
+	"strings"
 )
 
 var (
@@ -42,9 +42,11 @@ var (
 
 // Creates a generate request to imagefx server
 func Generate(req structs.NewRequest) ([]structs.GeneratedImage, error) {
+	if req.Prompt == "" {
+		return nil, fmt.Errorf("[!] prompt is missing")
+	}
 	if len(req.AuthCode) < 10 {
-		fmt.Println("[!] Invalid authentication code")
-		os.Exit(1)
+		return nil, fmt.Errorf("[!] authentication code is either invalid or missing")
 	}
 
 	// Some defaults
@@ -57,13 +59,16 @@ func Generate(req structs.NewRequest) ([]structs.GeneratedImage, error) {
 	}
 
 	if !slices.Contains(Models, req.ModelName) {
-		fmt.Println("[!] Invalid model selected")
-		os.Exit(1)
+		return nil, fmt.Errorf("[!] Invalid model name selected")
 	}
 
 	if !slices.Contains(ApectRatios, req.AspectRatio) {
-		fmt.Println("[!] Invalid aspect ratio selected")
-		os.Exit(1)
+		return nil, fmt.Errorf("[!] Invalid aspect ratio selected")
+	}
+
+	// Add Bearer token if not present
+	if !strings.HasPrefix(req.AuthCode, "Bearer ") {
+		req.AuthCode = "Bearer " + req.AuthCode
 	}
 
 	// Create request in proper schema
@@ -74,7 +79,7 @@ func Generate(req structs.NewRequest) ([]structs.GeneratedImage, error) {
 			Seed:            req.Seed,
 		},
 		ClientContext: structs.ClientContext{
-			SessionId: ";1747730436522",
+			SessionId: ";1747730436522", // Anything works here
 			Tool:      "IMAGE_FX",
 		},
 		ModelInput: structs.ModelInput{
@@ -98,7 +103,7 @@ func Generate(req structs.NewRequest) ([]structs.GeneratedImage, error) {
 	r.Header.Set("Content-Type", "text/plain;charset=UTF-8")
 	r.Header.Set("Accept", "*/*")
 
-	// Make a request:w http.ResponseWriter, r *http.Request
+	// Make a request
 	res, err := netops.Fetch(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request: %w", err)

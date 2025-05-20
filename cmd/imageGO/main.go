@@ -24,8 +24,6 @@ func main() {
 		fmt.Println()
 	}
 
-	flag.Parse()
-
 	count := flag.Int("count", 1, "Number of images to generate")
 	prompt := flag.String("prompt", "", "Image description")
 	auth := flag.String("auth", "", "Authentication token")
@@ -33,6 +31,8 @@ func main() {
 	model := flag.String("model", "IMAGEN_3", "Name of model to use")
 	aspect := flag.String("aratio", "IMAGE_ASPECT_RATIO_LANDSCAPE", "Aspect ratio of image")
 	name := flag.String("name", "image", "Output file name. Will be assigned index for more than one images.")
+
+	flag.Parse()
 
 	if *prompt == "" {
 		fmt.Println("[!] Image prompt is missing")
