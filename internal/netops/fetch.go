@@ -2,18 +2,19 @@ package netops
 
 import (
 	"fmt"
-	"imageGO/internal/util"
 	"io"
 	"net/http"
 	"os"
 	"time"
 )
 
-func Fetch(request *http.Request) string {
+func Fetch(request *http.Request) (string, error) {
 	client := &http.Client{Timeout: 100 * time.Second}
 
 	response, err := client.Do(request)
-	util.CheckForFailure(err)
+	if err != nil {
+		return "", fmt.Errorf("failed to make request: %w", err)
+	}
 
 	defer response.Body.Close()
 
@@ -23,7 +24,9 @@ func Fetch(request *http.Request) string {
 	}
 
 	responseText, err := io.ReadAll(response.Body)
-	util.CheckForFailure(err)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response: %w", err)
+	}
 
-	return string(responseText)
+	return string(responseText), nil
 }

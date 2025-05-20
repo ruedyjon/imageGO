@@ -5,11 +5,11 @@ import (
 	"fmt"
 	imagego "imageGO/pkg/imageGO"
 	"imageGO/structs"
-	"os"
 	"strings"
 )
 
 func main() {
+	// Modifying our usage function for better help menu
 	flag.Usage = func() {
 		fmt.Println("✨ imagego: Generate images using 'Imagen 3' from labs.google")
 		flag.PrintDefaults()
@@ -22,8 +22,9 @@ func main() {
 		fmt.Println(strings.Join(imagego.ApectRatios, ",  "))
 
 		fmt.Println()
-		os.Exit(1)
 	}
+
+	flag.Parse()
 
 	count := flag.Int("count", 1, "Number of images to generate")
 	prompt := flag.String("prompt", "", "Image description")
@@ -31,17 +32,18 @@ func main() {
 	seed := flag.Int("seed", 0, "Seed for image")
 	model := flag.String("model", "IMAGEN_3", "Name of model to use")
 	aspect := flag.String("aratio", "IMAGE_ASPECT_RATIO_LANDSCAPE", "Aspect ratio of image")
-
-	flag.Parse()
+	name := flag.String("name", "image", "Output file name. Will be assigned index for more than one images.")
 
 	if *prompt == "" {
 		fmt.Println("[!] Image prompt is missing")
 		flag.Usage()
+		return
 	}
 
 	if len(*auth) < 10 {
 		fmt.Println("[!] Authentication code is either invalid or missing")
 		flag.Usage()
+		return
 	}
 
 	if *count < 1 {
@@ -57,9 +59,14 @@ func main() {
 		Seed:        *seed,
 		ModelName:   *model,
 	}
+	images, err := imagego.Generate(req)
+	if err != nil {
+		fmt.Println("Failed to generate images: ", err)
+		return
+	}
 
-	for i, v := range imagego.Generate(req) {
-		err := v.Save(fmt.Sprintf("%s-%d.png", "test", i))
+	for i, v := range images {
+		err := v.Save(fmt.Sprintf("%s-%d.png", *name, i))
 		if err != nil {
 			fmt.Println("[!] Failed to save one of the image")
 		} else {

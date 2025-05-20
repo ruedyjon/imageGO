@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"imageGO/internal/netops"
-	"imageGO/internal/util"
 	"imageGO/structs"
 	"net/http"
 	"os"
@@ -13,7 +12,9 @@ import (
 )
 
 var (
-	reqUrl      = "https://aisandbox-pa.googleapis.com/v1:runImageFx"
+	reqUrl = "https://aisandbox-pa.googleapis.com/v1:runImageFx"
+	// List of available models that are 100% expected to work.
+	// Tested with burpsuite intruder :)
 	ApectRatios = []string{
 		"IMAGE_ASPECT_RATIO_SQUARE",
 		"IMAGE_ASPECT_RATIO_PORTRAIT",
@@ -23,6 +24,8 @@ var (
 		"IMAGE_ASPECT_RATIO_PORTRAIT_THREE_FOUR",
 	}
 
+	// List of available models that are 100% expected to work.
+	// Tested with burpsuite intruder :)
 	Models = []string{
 		"IMAGEN_2",
 		"IMAGEN_3",
@@ -37,12 +40,14 @@ var (
 	}
 )
 
-func Generate(req structs.NewRequest) []structs.GeneratedImage {
+// Creates a generate request to imagefx server
+func Generate(req structs.NewRequest) ([]structs.GeneratedImage, error) {
 	if len(req.AuthCode) < 10 {
 		fmt.Println("[!] Invalid authentication code")
 		os.Exit(1)
 	}
 
+	// Some defaults
 	if req.AspectRatio == "" {
 		req.AspectRatio = "IMAGE_ASPECT_RATIO_LANDSCAPE"
 	}
@@ -57,7 +62,7 @@ func Generate(req structs.NewRequest) []structs.GeneratedImage {
 	}
 
 	if !slices.Contains(ApectRatios, req.AspectRatio) {
-		fmt.Println("[!] Invalud aspect ratio selected")
+		fmt.Println("[!] Invalid aspect ratio selected")
 		os.Exit(1)
 	}
 
@@ -79,22 +84,32 @@ func Generate(req structs.NewRequest) []structs.GeneratedImage {
 	}
 
 	reqBodyByte, err := json.Marshal(reqBody)
-	util.CheckForFailure(err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stringify POST body: %w", err)
+	}
 
 	r, err := http.NewRequest("POST", reqUrl, bytes.NewBuffer(reqBodyByte))
-	util.CheckForFailure(err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make POST request: %w", err)
+	}
 
+	// Dont forget these hehe
 	r.Header.Set("Authorization", req.AuthCode)
 	r.Header.Set("Content-Type", "text/plain;charset=UTF-8")
 	r.Header.Set("Accept", "*/*")
 
-	// Make a request
-	res := netops.Fetch(r)
+	// Make a request:w http.ResponseWriter, r *http.Request
+	res, err := netops.Fetch(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make request: %w", err)
+	}
 
 	// Parse to Response type
 	var parsedRes structs.Response
 	err = json.Unmarshal([]byte(res), &parsedRes)
-	util.CheckForFailure(err)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse to JSON: %w", err)
+	}
 
-	return parsedRes.ImagePanels[0].GeneratedImages
+	return parsedRes.ImagePanels[0].GeneratedImages, nil
 }

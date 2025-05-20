@@ -3,7 +3,6 @@ package structs
 import (
 	"encoding/base64"
 	"fmt"
-	"imageGO/internal/util"
 	"os"
 )
 
@@ -38,7 +37,8 @@ func (res Response) Log() {
 // Reciever for a generated image
 func (g GeneratedImage) Save(fileName string) error {
 	decoded, err := base64.StdEncoding.DecodeString(g.EncodedImage)
-	util.CheckForFailure(err)
-
+	if err != nil {
+		return fmt.Errorf("failed to decode base64: %w", err)
+	}
 	return os.WriteFile(fileName, decoded, 0664) // Normal permisison
 }
