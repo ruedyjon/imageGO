@@ -41,7 +41,7 @@ func main() {
 	
 	// Save the first generated image as "test.png"
     // But make sure you check length first before indexing
-	image[0].Save("test")
+	images[0].Save("test")
 }
 ```
 

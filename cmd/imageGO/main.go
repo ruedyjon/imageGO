@@ -3,9 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	imagego "imageGO/pkg/imageGO"
-	"imageGO/structs"
 	"strings"
+
+	imagego "github.com/rohitaryal/imageGO/pkg/imageGO"
+	"github.com/rohitaryal/imageGO/structs"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 		fmt.Println(strings.Join(imagego.Models, ",  "))
 
 		fmt.Println("\nAvailable Aspect Ratios:")
-		fmt.Println(strings.Join(imagego.ApectRatios, ",  "))
+		fmt.Println(strings.Join(imagego.AspectRatios, ",  "))
 
 		fmt.Println()
 	}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -19,8 +18,7 @@ func Fetch(request *http.Request) (string, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		fmt.Println("FAILED: ", response.Status)
-		os.Exit(1)
+		return "", fmt.Errorf("request failed with status code: %d", response.StatusCode)
 	}
 
 	responseText, err := io.ReadAll(response.Body)

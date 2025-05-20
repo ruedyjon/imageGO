@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"imageGO/internal/netops"
-	"imageGO/structs"
 	"net/http"
 	"slices"
 	"strings"
+
+	"github.com/rohitaryal/imageGO/internal/netops"
+	"github.com/rohitaryal/imageGO/structs"
 )
 
 var (
 	reqUrl = "https://aisandbox-pa.googleapis.com/v1:runImageFx"
 	// List of available models that are 100% expected to work.
 	// Tested with burpsuite intruder :)
-	ApectRatios = []string{
+	AspectRatios = []string{
 		"IMAGE_ASPECT_RATIO_SQUARE",
 		"IMAGE_ASPECT_RATIO_PORTRAIT",
 		"IMAGE_ASPECT_RATIO_LANDSCAPE",
@@ -62,7 +63,7 @@ func Generate(req structs.NewRequest) ([]structs.GeneratedImage, error) {
 		return nil, fmt.Errorf("[!] Invalid model name selected")
 	}
 
-	if !slices.Contains(ApectRatios, req.AspectRatio) {
+	if !slices.Contains(AspectRatios, req.AspectRatio) {
 		return nil, fmt.Errorf("[!] Invalid aspect ratio selected")
 	}
 
@@ -114,6 +115,10 @@ func Generate(req structs.NewRequest) ([]structs.GeneratedImage, error) {
 	err = json.Unmarshal([]byte(res), &parsedRes)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse to JSON: %w", err)
+	}
+
+	if len(parsedRes.ImagePanels) == 0 {
+		return nil, fmt.Errorf("no image panels found in response")
 	}
 
 	return parsedRes.ImagePanels[0].GeneratedImages, nil
