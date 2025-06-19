@@ -1,24 +1,35 @@
-﻿// JavaScript source code
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
-const { Generate } = require("./pkg/imageGO/imageGO"); // caminho para a função
+const { execFile } = require("child_process");
+const path = require("path");
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-app.post("/generate", async (req, res) => {
-    try {
-        const result = await Generate(req.body);
-        res.json(result);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: "Image generation failed" });
+app.post("/generate", (req, res) => {
+  const { prompt, authCode, modelName, aspectRatio, seed } = req.body;
+
+  const args = [
+    "-prompt", prompt,
+    "-auth", authCode,
+    "-model", modelName || "IMAGEN_3",
+    "-aratio", aspectRatio || "IMAGE_ASPECT_RATIO_LANDSCAPE",
+    "-seed", seed?.toString() || "42",
+    "-name", "image" // Output will be image.png
+  ];
+
+  execFile(path.join(__dirname, "imagego"), args, (error, stdout, stderr) => {
+    if (error) {
+      console.error("Generation error:", stderr || error.message);
+      return res.status(500).json({ error: "Generation failed" });
     }
+
+    res.sendFile(path.join(__dirname, "image.png"));
+  });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`✅ Server running on port ${PORT}`);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`ImageGO API running on port ${port}`);
 });
