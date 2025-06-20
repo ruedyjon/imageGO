@@ -16,12 +16,14 @@ app.post("/generate", (req, res) => {
     "-model", modelName || "IMAGEN_3",
     "-aratio", aspectRatio || "IMAGE_ASPECT_RATIO_LANDSCAPE",
     "-seed", seed?.toString() || "42",
-    "-name", "image" // Output will be image.png
+    "-name", "image"
   ];
+
+  console.log("🛠️ Executando:", "./imagego", args);
 
   execFile(path.join(__dirname, "imagego"), args, (error, stdout, stderr) => {
     if (error) {
-      console.error("Generation error:", stderr || error.message);
+      console.error("❌ Generation error:", error.message, stderr);
       return res.status(500).json({ error: "Generation failed" });
     }
 
@@ -29,7 +31,7 @@ app.post("/generate", (req, res) => {
   });
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 app.listen(port, () => {
-  console.log(`ImageGO API running on port ${port}`);
+  console.log(`🚀 ImageGO API running on port ${port}`);
 });
