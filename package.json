@@ -1,14 +1,14 @@
 {
   "name": "imagego-api",
   "version": "1.0.0",
+  "description": "ImageGO API backend on Render",
   "main": "server.js",
-  "type": "commonjs",
   "scripts": {
+    "build": "./build.sh",
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "body-parser": "^1.20.2"
+    "express": "^4.18.2"
   }
 }
